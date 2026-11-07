@@ -28,29 +28,31 @@ The score is the one small learning part that managers see. Gradient boosting is
 
 ## Run it
 
-You need Python 3.10 or later. On Windows, open **Anaconda Prompt** (or any terminal with Python) in the project folder.
+You need Python 3.11 or later (tested on 3.12 and 3.13). The commands below work on Linux, macOS and WSL. On Windows, use `py -m venv .venv` and `.venv\Scripts\activate` instead.
 
 ```bash
 # 1. Make an environment and install the packages (once)
-conda create -n blindspot python=3.12 -y
-conda activate blindspot
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 
 # 2. Check that everything works (9 tests, about a minute)
 python -m pytest -q
 
-# 3. Build the dashboard, then open out/blindspot.html in a browser
-python src/build_dashboard_data.py
-
-# 4. Optional: the full evaluation (20 fresh runs, several minutes)
-python src/evaluate.py
-python src/cause_eval.py
-
-# 5. Optional: write the simulated data to data/synthetic/zone_weeks.csv
-python src/generate_data.py
+# 3. Build the dashboard and serve it on your computer
+python run.py
 ```
 
-Without conda, `python -m venv .venv`, activate it, then `pip install -r requirements.txt` works the same way.
+Then open <http://localhost:8000> in your browser. Stop the server with Ctrl+C. If port 8000 is busy, use `python run.py --port 8080`. On WSL2 the Windows browser can open `localhost` directly. The server listens on your computer only.
+
+Optional:
+
+```bash
+python src/build_dashboard_data.py   # build out/blindspot.html only, a static page you can open directly
+python src/evaluate.py               # the full evaluation, 20 fresh runs, several minutes; writes out/results.json
+python src/cause_eval.py             # check the cause label, about a minute
+python src/generate_data.py          # write the simulated data to data/synthetic/zone_weeks.csv
+```
 
 Outputs go to `out/` and `data/`. Both are rebuilt by the commands above and are not committed.
 
