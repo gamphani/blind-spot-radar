@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Generated outputs: rebuild with the commands in the README
+out/
+data/
+
+# Never commit real data or secrets
+*.csv
+*.xlsx
+*.xls
+*.sav
+*.dta
+*.sqlite
+*.db
+.env
+
+# OS files
+.DS_Store
+Thumbs.db

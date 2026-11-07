@@ -1,0 +1,184 @@
+<meta charset="utf-8">
+<!-- SPDX-License-Identifier: BSD-3-Clause. Copyright (c) 2026, Africa Centres for Disease Control and Prevention (Africa CDC) -->
+<title>Blind-Spot Radar</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;700&family=Nunito+Sans:wght@400;600;700&display=swap">
+<style>
+/* Layout: coordinator console. Ranked list (left), zone tile map (centre), zone detail (right); stacks on phones.
+   Colour: teal brand, one hue per kind of gap (blue = reporting, orange = community, violet = both). */
+:root{
+  --bg:#F2F7F6; --surface:#FFFFFF; --surface2:#E7F0EE; --line:#CBDCD8; --fg:#12302B; --muted:#4E6C66;
+  --accent:#0E7C73; --rep:#2F55A4; --com:#B04F14; --both:#6A5688;
+  --warnbg:#F6E7B8; --warnfg:#4F3A05; --band:#BFE3DE;
+  --display:'DM Sans',system-ui,sans-serif; --body:'Nunito Sans',system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0B1816; --surface:#12252A; --surface2:#193432; --line:#2A4843; --fg:#E2F0ED; --muted:#98B6AF;
+  --accent:#3CC2B4; --rep:#8DA8EE; --com:#F2A36B; --both:#BDA9DA; --warnbg:#3B3010; --warnfg:#F2D98C; --band:#1F5650; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B1816; --surface:#12252A; --surface2:#193432; --line:#2A4843; --fg:#E2F0ED; --muted:#98B6AF;
+  --accent:#3CC2B4; --rep:#8DA8EE; --com:#F2A36B; --both:#BDA9DA; --warnbg:#3B3010; --warnfg:#F2D98C; --band:#1F5650; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45;
+  padding-block:0 32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1320px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.banner{background:var(--warnbg);color:var(--warnfg);padding:9px 14px;border-radius:8px;font-weight:700;font-size:14px;margin-top:14px}
+header{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between}
+h1{font-family:var(--display);font-size:28px;line-height:1.1;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:4px 0 0;max-width:62ch}
+.ctl{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+label{font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:center}
+select{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+.stat b{display:block;font-family:var(--display);font-size:26px;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat span{font-size:13px;color:var(--muted)}
+.stat.rep b{color:var(--rep)} .stat.com b{color:var(--com)} .stat.both b{color:var(--both)}
+.grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.9fr) minmax(0,1.15fr);gap:14px;align-items:start}
+@media (max-width:1100px){.grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)} .detail{grid-column:1/-1}}
+@media (max-width:700px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;min-width:0}
+h2{font-family:var(--display);font-size:16px;margin:0 0 8px;letter-spacing:.2px}
+.hint{font-size:13px;color:var(--muted);margin:0 0 10px}
+.list{display:flex;flex-direction:column;gap:2px}
+.row{display:grid;grid-template-columns:22px 52px minmax(0,1fr) 92px;gap:8px;align-items:center;width:100%;text-align:left;
+  background:transparent;border:1px solid transparent;border-radius:8px;padding:6px 6px;color:inherit;font:inherit;cursor:pointer}
+.row:hover{background:var(--surface2)} .row[aria-pressed=true]{background:var(--surface2);border-color:var(--accent)}
+.rk{color:var(--muted);font-variant-numeric:tabular-nums;font-size:13px}
+.zn{font-weight:700;font-variant-numeric:tabular-nums}
+.bar{position:relative;height:18px}
+.bar .axis{position:absolute;left:0;right:0;top:8px;height:2px;background:var(--line)}
+.bar .rng{position:absolute;top:4px;height:10px;background:var(--band);border-radius:5px}
+.bar .dot{position:absolute;top:2px;width:14px;height:14px;margin-left:-7px;border-radius:50%;border:2px solid var(--surface)}
+.bar .tru{position:absolute;top:2px;width:12px;height:12px;margin-left:-6px;transform:rotate(45deg);background:var(--fg);border:2px solid var(--surface)}
+.pct{font-variant-numeric:tabular-nums;font-weight:700;text-align:right}
+.chip{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:700;color:var(--surface);white-space:nowrap}
+.chip.reporting{background:var(--rep)} .chip.community{background:var(--com)} .chip.both{background:var(--both)}
+.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:10px}
+.map{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
+.tile{aspect-ratio:1;border-radius:8px;border:2px solid transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font:inherit;color:var(--fg);cursor:pointer;padding:0;min-width:0}
+.tile small{font-size:11px;color:var(--muted)} .tile b{font-size:15px;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile[aria-pressed=true]{border-color:var(--fg)} .tile.off{background:var(--surface2);color:var(--muted)}
+.prov{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;font-size:12px;color:var(--muted);margin-top:8px}
+.big{font-family:var(--display);font-size:22px;line-height:1.25;margin:2px 0 10px;text-wrap:balance}
+.big em{font-style:normal;color:var(--accent)}
+.act{background:var(--surface2);border-radius:8px;padding:9px 12px;margin:10px 0;font-size:14px}
+ul{margin:0;padding-left:18px} li{margin:3px 0}
+.why li span{color:var(--muted)}
+table.sig{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+table.sig td{padding:3px 0;border-bottom:1px solid var(--line)} table.sig td:last-child{text-align:right;font-weight:700}
+.reveal{border:1px dashed var(--fg);border-radius:8px;padding:9px 12px;margin:10px 0;font-size:14px}
+details{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:10px 14px}
+summary{cursor:pointer;font-family:var(--display);font-weight:700}
+.note{font-size:13px;color:var(--muted)}
+svg text{fill:var(--muted);font-family:var(--body);font-size:11px}
+</style>
+<div class="wrap">
+<div class="banner" role="note">SYNTHETIC DATA. The zones, numbers and outbreak are invented to show how the tool works. Nothing here describes the DRC response.</div>
+<header>
+  <div>
+    <h1>Blind-Spot Radar</h1>
+    <p class="sub">Which health zones are probably missing the most Ebola cases in the next two weeks, and is the gap in reporting or in the community?</p>
+  </div>
+  <div class="ctl">
+    <label for="origin">Forecast made at the end of week <select id="origin"></select></label>
+    <label for="reveal"><input type="checkbox" id="reveal"> Show what really happened (only possible in a simulation)</label>
+  </div>
+</header>
+<section class="sum" id="sum" aria-label="Summary"></section>
+<div class="grid">
+  <section class="panel" aria-labelledby="h-rank">
+    <h2 id="h-rank">Zones ranked by share of cases likely missed</h2>
+    <p class="hint">Dot = best estimate. Shaded band = 80% range. Zones with too little activity are not rated.</p>
+    <div class="list" id="list"></div>
+    <div class="legend"><span><span class="chip reporting">Reporting</span> late or incomplete reports, no devices or link</span>
+      <span><span class="chip community">Community</span> contacts not followed, deaths at home, burial refusals</span>
+      <span><span class="chip both">Both</span> no single cause stands out</span></div>
+  </section>
+  <section class="panel" aria-labelledby="h-map">
+    <h2 id="h-map">Zone map (schematic)</h2>
+    <p class="hint">Tiles are zones on a 6 x 6 grid. Colour shows the kind of gap, depth shows how large. Grey = not rated.</p>
+    <div class="map" id="map"></div>
+    <div class="prov"><span>Rows 1-2</span><span>Province A</span><span>Rows 3-4</span><span>Province B</span><span>Rows 5-6</span><span>Province C</span></div>
+  </section>
+  <section class="panel detail" aria-labelledby="h-det" id="detail"></section>
+</div>
+<details>
+  <summary>How to read this, and what it cannot tell you</summary>
+  <ul style="margin-top:10px">
+    <li><b>The number is a share, not a count.</b> "62%" means about 62 of every 100 cases expected in that zone may never reach the reports. It says nothing about how many cases there are.</li>
+    <li><b>The range matters more than the dot.</b> A wide range means the signals are weak or mixed. Treat it as a reason to check, not a verdict.</li>
+    <li><b>Flags describe gaps in the response, not blame on communities.</b> "Community" means contacts are not being reached or burials are being refused. It is a prompt for engagement, not for enforcement.</li>
+    <li><b>Reports from the last two weeks are still arriving,</b> so the newest numbers are incomplete. The tool uses a four-week average to soften this.</li>
+    <li><b>Tested only on invented outbreaks.</b> In 20 simulated outbreaks the transparent score ranked zones well and its 80% ranges held 85% of the time. Real data will behave differently, and that is what the project will find out.</li>
+    <li><b>Ranking zones by case counts is still better for "where are most cases".</b> This tool answers a different question: where are cases being missed.</li>
+  </ul>
+</details>
+<p class="note">Method: a transparent weighted score of routine warning signals (reports received, report delay, contacts followed up, cases from known contacts, deaths in the community, burial refusals, security incidents, community workers with a phone), with ranges adjusted on recent errors. Cause = which group of signals looks worse than the typical zone that week.</p>
+</div>
+<script>
+const D=__DATA__;
+const $=s=>document.querySelector(s), esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const CAUSE={reporting:'Reporting',community:'Community',both:'Both'};
+const CV={reporting:'var(--rep)',community:'var(--com)',both:'var(--both)'};
+let origin=String(D.origins[D.origins.length-1]), sel=null, reveal=false;
+const oSel=$('#origin'); D.origins.forEach(o=>{const e=document.createElement('option');e.value=o;e.textContent=o;oSel.appendChild(e)}); oSel.value=origin;
+function fmt(key,v){
+  if(['completeness','contact_followup','linked_share','community_death_share','device_coverage'].includes(key)) return Math.round(v*100)+'%';
+  if(key==='report_delay_days') return v.toFixed(1)+' days'; return v.toFixed(1)+' per week';}
+function zones(){return D.by_origin[origin]}
+function ranked(){return zones().filter(z=>z.active).sort((a,b)=>b.score-a.score)}
+function bar(z,extra){const tr=(reveal&&z.truth!==null)?`<span class="tru" style="left:${z.truth}%" title="What really happened: ${z.truth}%"></span>`:'';
+  return `<div class="bar" aria-hidden="true"><span class="axis"></span><span class="rng" style="left:${z.lo80}%;width:${Math.max(2,z.hi80-z.lo80)}%"></span><span class="dot" style="left:${z.score}%;background:${CV[z.cause]}"></span>${tr}</div>`}
+function renderSum(){const r=ranked().filter(z=>z.score>=50);const n=k=>r.filter(z=>z.cause===k).length;
+  $('#sum').innerHTML=`<div class="stat"><b>${r.length}</b><span>zones where at least half of cases may be missed</span></div>
+  <div class="stat rep"><b>${n('reporting')}</b><span>mainly a reporting gap</span></div>
+  <div class="stat com"><b>${n('community')}</b><span>mainly a community gap</span></div>
+  <div class="stat both"><b>${n('both')}</b><span>both, or unclear</span></div>
+  <div class="stat"><b>Week ${origin}</b><span>data as of; last 2 weeks still arriving</span></div>`}
+function renderList(){const r=ranked();if(!sel||!r.find(z=>z.zone===sel))sel=r.length?r[0].zone:null;
+  $('#list').innerHTML=r.map((z,i)=>`<button class="row" data-z="${z.zone}" aria-pressed="${z.zone===sel}" aria-label="Zone ${z.zone}, ${z.score} percent likely missed">
+    <span class="rk">${i+1}</span><span class="zn">${z.zone}</span>${bar(z)}<span class="pct">${z.score}%</span></button>`).join('')||'<p class="hint">No zone has enough activity to rate this week.</p>'}
+function renderMap(){const m=Array.from({length:6},()=>Array(6).fill(null));zones().forEach(z=>{m[z.row][z.col]=z});
+  $('#map').innerHTML=m.flat().map(z=>{if(!z)return'';const on=z.active;
+    const st=on?`background:color-mix(in srgb, ${CV[z.cause]} ${Math.round(18+z.score*0.5)}%, var(--surface2))`:'';
+    return `<button class="tile ${on?'':'off'}" data-z="${z.zone}" style="${st}" aria-pressed="${z.zone===sel}" aria-label="Zone ${z.zone}${on?', '+z.score+' percent likely missed, '+CAUSE[z.cause]+' gap':', not rated'}">
+      <small>${z.zone}</small><b>${on?z.score:'–'}</b></button>`}).join('')}
+function spark(z){const h=D.history[z.zone].reported.slice(0,+origin);const n=h.length,W=360,H=110,L=30,R=8,T=8,B=20;
+  const mx=Math.max(4,...h),x=i=>L+(W-L-R)*i/(n-1),y=v=>T+(H-T-B)*(1-v/mx);
+  const pts=h.map((v,i)=>[x(i),y(v)]);const early=pts.slice(0,-2),late=pts.slice(-3);
+  const path=a=>a.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  const ticks=[0,Math.round(mx/2),mx].map(v=>`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${L-5}" y="${y(v)+4}" text-anchor="end">${v}</text>`).join('');
+  const wk=[1,10,20,30,n].filter((v,i,a)=>a.indexOf(v)===i&&v<=n).map(v=>`<text x="${x(v-1)}" y="${H-5}" text-anchor="middle">${v}</text>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Reported cases per week for zone ${z.zone}">${ticks}${wk}
+    <path d="${path(early)}" fill="none" stroke="var(--fg)" stroke-width="2"/><path d="${path(late)}" fill="none" stroke="var(--fg)" stroke-width="2" stroke-dasharray="4 3"/>
+    <circle cx="${pts[n-1][0]}" cy="${pts[n-1][1]}" r="4" fill="${CV[z.cause]}"/></svg>`}
+function renderDetail(){const z=zones().find(z=>z.zone===sel);const el=$('#detail');
+  if(!z){el.innerHTML='<h2 id="h-det">Zone detail</h2><p class="hint">Select a zone.</p>';return}
+  const why=z.drivers.length?z.drivers.map(d=>`<li>${esc(d.label)}: <b>${fmt(d.key,d.value)}</b> <span>(typical zone ${fmt(d.key,d.typical)})</span></li>`).join(''):'<li>No signal stands out from the typical zone.</li>';
+  const sg=z.sig,rv=(reveal&&z.truth!==null)?`<div class="reveal"><b>What really happened (simulation only):</b> ${z.truth}% of the cases in the next two weeks were missed.
+    That is ${(z.truth>=z.lo80&&z.truth<=z.hi80)?'<b>inside</b>':'<b>outside</b>'} the 80% range.</div>`:'';
+  el.innerHTML=`<h2 id="h-det">Zone ${z.zone} <span class="note">· ${esc(z.province)}</span></h2>
+  <p class="big">About <em>${z.score}%</em> of cases in the next 2 weeks may go unreported, probably between ${z.lo80}% and ${z.hi80}%.</p>
+  ${bar(z)}<p class="note" style="margin:2px 0 6px">0% to 100% of cases missed. Each range spans about 40 points, so use the score to rank zones and prompt a check, not as an exact figure.</p>
+  <span class="chip ${z.cause}">${CAUSE[z.cause]} gap</span>
+  <div class="act"><b>Suggested first step:</b> ${esc(z.action)}</div>${rv}
+  <h2>Why this zone is flagged</h2><ul class="why">${why}</ul>
+  <h2 style="margin-top:12px">Reported cases per week</h2>${spark(z)}
+  <p class="note">Dashed line: the last two weeks, still incomplete. ${z.rep4} cases reported in the last 4 weeks.</p>
+  <h2 style="margin-top:12px">Warning signals (4-week average)</h2>
+  <table class="sig"><tr><td>Reports received</td><td>${Math.round(sg.completeness*100)}%</td></tr>
+  <tr><td>Report delay</td><td>${sg.delay} days</td></tr>
+  <tr><td>Contacts followed up</td><td>${sg.followup===null?'no cases':Math.round(sg.followup*100)+'%'}</td></tr>
+  <tr><td>Deaths in the community</td><td>${sg.comm_deaths===null?'no cases':Math.round(sg.comm_deaths*100)+'%'}</td></tr>
+  <tr><td>Burial refusals per week</td><td>${sg.refusals}</td></tr>
+  <tr><td>Community workers with a phone</td><td>${Math.round(sg.devices*100)}%</td></tr></table>`}
+function all(){renderSum();renderList();renderMap();renderDetail()}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-z]');if(b){sel=b.dataset.z;all()}});
+oSel.addEventListener('change',()=>{origin=oSel.value;all()});
+$('#reveal').addEventListener('change',e=>{reveal=e.target.checked;all()});
+all();
+</script>
