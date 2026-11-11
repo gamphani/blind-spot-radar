@@ -11,7 +11,7 @@
 <style>
 /* Look: aquamarine surfaces and accents on a deep marine header, with the Africa CDC colours for the kinds of gap.
    Gap colours: ocean blue = reporting, maroon = community, gold = both. Light and dark themes share the same tokens.
-   Layout: ranked list (left), zone tile map (centre), zone detail (right); stacks on phones. */
+   Layout: ranked list (left), zone map (centre: schematic tiles or real DRC map), zone detail (right); stacks on phones. */
 :root{
   --bg:#E9F6F3; --surface:#FFFFFF; --surface2:#E1F2EE; --line:#BDDCD5; --fg:#0A2E29; --muted:#40605A; --ink2:#0A3B34;
   --accent:#0E7C73; --aqua:#2ED3B7; --aqua-soft:#C8F3E8; --band:#9FE3D4;
@@ -39,11 +39,12 @@
   --hero1:#04201D; --hero2:#0A3F39; --hero3:#0F6A62;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -14px rgba(0,0,0,.7); color-scheme:dark}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0}
 body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:40px}
 :focus-visible{outline:3px solid var(--aqua);outline-offset:2px;border-radius:6px}
 .gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.banner{background:var(--warnbg);color:var(--warnfg);font-weight:700;font-size:13.5px;text-align:center;padding:8px 16px;letter-spacing:.1px}
+.banner{background:var(--warnbg);color:var(--warnfg);font-weight:700;font-size:13.5px;text-align:center;padding-block:8px;letter-spacing:.1px}
 .banner b{letter-spacing:.8px}
 .hero{background:
   radial-gradient(760px 300px at 88% -30%,rgba(127,255,212,.38),transparent 62%),
@@ -89,7 +90,7 @@ select option{color:#0A2E29;background:#FFFFFF}
 @media (max-width:700px){.grid{grid-template-columns:minmax(0,1fr)} .hero-in{padding-block:20px 34px} .stat.lead{grid-column:1/-1}}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;min-width:0;box-shadow:var(--shadow)}
 h2{font-family:var(--display);font-size:16px;margin:0 0 8px;letter-spacing:.1px;text-wrap:balance}
-.panel>h2:before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--aqua);box-shadow:0 0 0 4px var(--aqua-soft);margin:0 12px 1px 4px;vertical-align:middle}
+.panel>h2:before,.phead>h2:before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--aqua);box-shadow:0 0 0 4px var(--aqua-soft);margin:0 12px 1px 4px;vertical-align:middle}
 .hint{font-size:13px;color:var(--muted);margin:0 0 12px}
 .list{display:flex;flex-direction:column;gap:2px}
 .row{display:grid;grid-template-columns:24px 54px minmax(0,1fr) 50px;gap:8px;align-items:center;width:100%;text-align:left;position:relative;
@@ -117,6 +118,22 @@ h2{font-family:var(--display);font-size:16px;margin:0 0 8px;letter-spacing:.1px;
 .tile .m{position:absolute;left:10%;bottom:6px;height:4px;border-radius:2px;background:var(--cat);width:calc(var(--sc) * .8%)}
 .tile[aria-pressed=true]{border-color:var(--fg);box-shadow:0 0 0 2px var(--surface) inset}
 .tile.off{background:transparent;border:2px dashed var(--line);color:var(--muted)}
+.phead{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;margin-bottom:8px}
+.phead h2{margin:0}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:99px;padding:2px;background:var(--surface2)}
+.seg button{font:inherit;font-size:12.5px;font-weight:700;color:var(--muted);background:transparent;border:0;border-radius:99px;padding:4px 12px;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--surface);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.rmap svg{display:block;width:100%;height:auto;max-height:560px}
+.rmap .pv{fill:var(--surface2);stroke:var(--line);stroke-width:.8;vector-effect:non-scaling-stroke}
+.rmap .pv.scope{fill:var(--aqua-soft);stroke:var(--accent);stroke-width:1.6}
+.rmap .pvl{fill:none;stroke:var(--muted);stroke-width:1;vector-effect:non-scaling-stroke;pointer-events:none}
+.rmap .zp{stroke:var(--surface);stroke-width:.7;vector-effect:non-scaling-stroke;cursor:pointer}
+.rmap .zp.off{fill:transparent;stroke:var(--line);stroke-dasharray:3 2}
+.rmap .zp.sel{stroke:var(--fg);stroke-width:2.4}
+.rmap .zp:hover{stroke:var(--fg)}
+.rmap text.lbl{fill:var(--fg);font-family:var(--display);font-weight:700;font-size:13px;paint-order:stroke;stroke:var(--surface);stroke-width:3px}
+.rmap text.site{fill:var(--fg);font-size:11.5px;paint-order:stroke;stroke:var(--surface);stroke-width:3px}
+.rmap .attr{font-size:11px;color:var(--muted);margin-top:8px}
 .prov{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);margin-top:12px}
 .prov span b{color:var(--fg)}
 .big{font-family:var(--display);font-size:22px;line-height:1.28;margin:2px 0 12px;text-wrap:balance;letter-spacing:-.2px}
@@ -138,7 +155,7 @@ svg text{fill:var(--muted);font-family:var(--body);font-size:11px}
 </style>
 </head>
 <body>
-<div class="banner" role="note"><b>SYNTHETIC DATA.</b> The zones, numbers and outbreak are invented to show how the tool works. Nothing here describes the DRC response.</div>
+<div class="banner gut" role="note"><b>SYNTHETIC DATA.</b> The zones, numbers and outbreak are invented to show how the tool works. Nothing here describes the DRC response.</div>
 <header class="hero gut">
   <div class="hero-in">
     <div class="eyebrow">Decision layer on DHIS2 &middot; prototype</div>
@@ -167,10 +184,12 @@ svg text{fill:var(--muted);font-family:var(--body);font-size:11px}
       <span><span class="chip both">Both</span> no single cause stands out</span></div>
   </section>
   <section class="panel" aria-labelledby="h-map">
-    <h2 id="h-map">Zone map (schematic)</h2>
-    <p class="hint">Tiles are zones on a 6 x 6 grid. Colour shows the kind of gap; the bar under each score shows how large. Dashed = not rated.</p>
+    <div class="phead"><h2 id="h-map">Zone map</h2>
+      <div class="seg" role="group" aria-label="Map view"><button type="button" data-view="tiles" aria-pressed="true">Schematic</button><button type="button" data-view="real" aria-pressed="false">DRC map</button></div></div>
+    <p class="hint" id="maphint"></p>
     <div class="map" id="map"></div>
-    <div class="prov"><span><b>Rows 1-2</b> Province A</span><span><b>Rows 3-4</b> Province B</span><span><b>Rows 5-6</b> Province C</span></div>
+    <div class="rmap" id="rmap" hidden></div>
+    <div class="prov" id="provkey"><span><b>Rows 1-2</b> Province A</span><span><b>Rows 3-4</b> Province B</span><span><b>Rows 5-6</b> Province C</span></div>
   </section>
   <section class="panel detail" aria-labelledby="h-det" id="detail"></section>
 </div>
@@ -217,6 +236,39 @@ function renderMap(){const m=Array.from({length:6},()=>Array(6).fill(null));zone
     const st=on?`--cat:${CV[z.cause]};--mix:${Math.round(12+z.score*0.22)}%;--sc:${z.score}`:'';
     return `<button class="tile ${on?'':'off'}" data-z="${z.zone}" style="${st}" aria-pressed="${z.zone===sel}" aria-label="Zone ${z.zone}${on?', '+z.score+' percent likely missed, '+CAUSE[z.cause]+' gap':', not rated'}">
       <small>${z.zone}</small><b>${on?z.score:'–'}</b>${on?'<span class="m"></span>':''}</button>`}).join('')}
+// ---- real map: outlines are delta-encoded integer steps (see src/geo.py)
+const G=D.geo||null;
+let view='tiles';try{if(localStorage.getItem('bsr-map')==='real')view='real'}catch(e){}
+function dec(enc,f){return enc.split('|').map(p=>{let x=0,y=0;return p.split(' ').map(s=>{const [a,b]=s.split(',');x+=+a;y+=+b;return [x/f,y/f]})})}
+let PV=null;function provs(){if(!PV&&G)PV=G.provinces.items.map(([n,e])=>({n,r:dec(e,G.provinces.f)}));return PV}
+const ZG={};function zgeom(z){if(!G||!G.zones||!z.uid||!G.zones.items[z.uid])return null;if(!ZG[z.uid])ZG[z.uid]=dec(G.zones.items[z.uid],G.zones.f);return ZG[z.uid]}
+function hasZones(){return zones().some(z=>zgeom(z))}
+function renderReal(){const el=$('#rmap');if(!G){el.innerHTML='<p class="hint">No map outlines in this build.</p>';return}
+  const zmode=hasZones(), P=provs();
+  let bb=[1e9,1e9,-1e9,-1e9];const grow=rs=>rs.forEach(r=>r.forEach(([x,y])=>{bb=[Math.min(bb[0],x),Math.min(bb[1],y),Math.max(bb[2],x),Math.max(bb[3],y)]}));
+  if(zmode)zones().forEach(z=>{const g=zgeom(z);if(g)grow(g)});else P.forEach(p=>grow(p.r));
+  const pad=(bb[2]-bb[0])*0.04, kx=Math.cos((bb[1]+bb[3])/2*Math.PI/180), W=400, s=W/((bb[2]-bb[0]+2*pad)*kx), H=Math.round((bb[3]-bb[1]+2*pad)*s);
+  const X=x=>((x-bb[0]+pad)*kx*s).toFixed(1), Y=y=>((bb[3]+pad-y)*s).toFixed(1);
+  const d=rs=>rs.map(r=>'M'+r.map(([x,y])=>X(x)+' '+Y(y)).join('L')+'Z').join('');
+  const cen=rs=>{const r=rs.reduce((a,b)=>b.length>a.length?b:a);let cx=0,cy=0;r.forEach(([x,y])=>{cx+=x;cy+=y});return [cx/r.length,cy/r.length]};
+  const scope=new Set(G.scope||[]);let svg='';
+  if(zmode){
+    svg+=P.map(p=>`<path class="pv" d="${d(p.r)}"/>`).join('');
+    svg+=zones().map(z=>{const g=zgeom(z);if(!g)return'';const on=z.active;
+      const fill=on?`fill:color-mix(in srgb,${CV[z.cause]} ${Math.round(18+z.score*0.7)}%,var(--surface2))`:'';
+      return `<path class="zp ${on?'':'off'} ${z.zone===sel?'sel':''}" data-z="${esc(z.zone)}" style="${fill}" d="${d(g)}"><title>${esc(z.zone)}${on?': '+z.score+'% likely missed, '+CAUSE[z.cause]+' gap':': not rated'}</title></path>`}).join('');
+    svg+=P.map(p=>`<path class="pvl" d="${d(p.r)}"/>`).join('');
+    $('#maphint').textContent='Real health-zone boundaries. Colour shows the kind of gap; darker means a larger share likely missed. Dashed = not rated. Click a zone for detail.';
+  }else{
+    svg+=P.map(p=>`<path class="pv ${scope.has(p.n)?'scope':''}" d="${d(p.r)}"><title>${esc(p.n)}${scope.has(p.n)?' (in scope)':''}</title></path>`).join('');
+    svg+=P.filter(p=>scope.has(p.n)).map(p=>{const [cx,cy]=cen(p.r);return `<text class="lbl" x="${X(cx)}" y="${Y(cy+0.9)}" text-anchor="middle">${esc(p.n)}</text>`}).join('');
+    if(G.site){const sx=X(G.site.lon),sy=Y(G.site.lat);svg+=`<circle cx="${sx}" cy="${sy}" r="4.5" fill="var(--com)" stroke="var(--surface)" stroke-width="2"/><text class="site" x="${(+sx-7).toFixed(1)}" y="${(+sy+4).toFixed(1)}" text-anchor="end">${esc(G.site.name)} (field site)</text>`}
+    $('#maphint').textContent='Real province boundaries. Zone estimates are not drawn here, because the zones on this page are invented. With real DHIS2 data, each health zone is shaded by the kind and size of its gap.';
+  }
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${zmode?'Map of health zones coloured by kind of gap':'Map of DRC provinces; '+[...scope].join(', ')+' highlighted'}">${svg}</svg><p class="attr">${esc(G.attribution||'')}</p>`}
+function renderView(){const real=view==='real';$('#map').hidden=real;$('#provkey').hidden=real;$('#rmap').hidden=!real;
+  document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===view)));
+  if(real)renderReal();else $('#maphint').textContent='Tiles are zones on a 6 x 6 grid. Colour shows the kind of gap; the bar under each score shows how large. Dashed = not rated.'}
 function spark(z){const h=D.history[z.zone].reported.slice(0,+origin);const n=h.length,W=360,H=110,L=30,R=8,T=8,B=20;
   const mx=Math.max(4,...h),x=i=>L+(W-L-R)*i/(n-1),y=v=>T+(H-T-B)*(1-v/mx);
   const pts=h.map((v,i)=>[x(i),y(v)]);const early=pts.slice(0,-2),late=pts.slice(-3);
@@ -249,8 +301,9 @@ function renderDetail(){const z=zones().find(z=>z.zone===sel);const el=$('#detai
   <tr><td>Deaths in the community</td><td>${sg.comm_deaths===null?'no cases':Math.round(sg.comm_deaths*100)+'%'}</td></tr>
   <tr><td>Burial refusals per week</td><td>${sg.refusals}</td></tr>
   <tr><td>Community workers with a phone</td><td>${Math.round(sg.devices*100)}%</td></tr></table>`}
-function all(){renderSum();renderList();renderMap();renderDetail()}
-document.addEventListener('click',e=>{const b=e.target.closest('[data-z]');if(b){sel=b.dataset.z;all()}});
+function all(){renderSum();renderList();renderMap();renderView();renderDetail()}
+document.addEventListener('click',e=>{const v=e.target.closest('[data-view]');if(v){view=v.dataset.view;try{localStorage.setItem('bsr-map',view)}catch(_){};renderView();return}
+  const b=e.target.closest('[data-z]');if(b){sel=b.dataset.z;all()}});
 oSel.addEventListener('change',()=>{origin=oSel.value;all()});
 $('#reveal').addEventListener('change',e=>{reveal=e.target.checked;all()});
 // colour theme: Auto (follows the device), Light or Dark; the choice is remembered in this browser when possible

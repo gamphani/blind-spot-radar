@@ -22,6 +22,7 @@ It works on weekly counts per health zone (one row per zone per week). It does n
 | Ranges | Split conformal prediction gives 80% and 95% ranges | `BlindSpotModel`, `conformal_q` in `src/model.py` |
 | Cause and first step | A readable rule compares reporting signals with community signals | `cause_rule`, `cause_label`, `drivers` in `src/model.py` |
 | Dashboard | A standalone web page with overview, zone view and test view | `src/build_dashboard_data.py`, `src/dashboard_template.html` |
+| Map | Schematic tile map, or real DRC map (provinces now; health zones once DHIS2 outlines are loaded) | `src/geo.py`, `geo/` |
 | Check honestly | Baselines, rolling-origin test, range coverage, falsification tests | `src/evaluate.py`, `src/cause_eval.py`, `tests/` |
 
 The score is the one small learning part that managers see. Gradient boosting is also used behind the scenes (to decide whether a zone has enough activity to rate) and as a rival model in testing.
@@ -36,7 +37,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
-# 2. Check that everything works (9 tests, about a minute)
+# 2. Check that everything works (10 tests, about a minute)
 python -m pytest -q
 
 # 3. Build the dashboard and serve it on your computer
@@ -67,6 +68,10 @@ Outputs go to `out/` and `data/`. Both are rebuilt by the commands above and are
 | Gradient boosting (complex challenger) | 0.53 |
 
 The 80% range held the truth 85% of the time and the 95% range 96%. The reporting-versus-community label scored 0.97 (area under the curve), which is partly circular because the link between signals and causes is built into the simulator. Ranking by expected number of missed cases was no better than ranking by reported cases. These numbers come from the simulator and say nothing about the outbreak itself.
+
+## Map outlines and licence
+
+The "DRC map" view uses simplified province boundaries in `geo/drc_provinces.tsv` (OpenStreetMap RDC / RGC via HDX, ODbL 1.0, © OpenStreetMap contributors). That file is under the ODbL, not the BSD licence. While the data are synthetic the real map shows provinces only; zone estimates are never drawn on real boundaries. See `geo/README.md` for loading health-zone outlines from DHIS2.
 
 ## Limits
 

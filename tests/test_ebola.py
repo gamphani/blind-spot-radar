@@ -85,3 +85,18 @@ def test_drivers_flag_worst_signals(frame):
     row["completeness_m4"] = wk.completeness_m4.min() - 0.5
     d = drivers(row, wk)
     assert any(x[1] == "completeness" for x in d)
+
+
+def test_map_outlines():
+    """Province outlines load, decode inside the DRC, and DHIS2 geometry converts round-trip."""
+    from geo import dashboard_geo, decode_rings, encode_rings, zones_from_dhis2
+    g = dashboard_geo()
+    names = [n for n, _ in g["provinces"]["items"]]
+    assert len(names) == 26 and "Ituri" in names and set(g["scope"]) <= set(names)
+    for _, enc in g["provinces"]["items"]:
+        for ring in decode_rings(enc, g["provinces"]["f"]):
+            assert all(11.5 < x < 31.5 and -14 < y < 5.5 for x, y in ring)
+    sq = [[[30.0, 1.0], [30.5, 1.0], [30.5, 1.5], [30.0, 1.5], [30.0, 1.0]]]
+    rows = zones_from_dhis2({"organisationUnits": [{"id": "abc123", "name": "Test", "geometry": {"type": "Polygon", "coordinates": sq}}]})
+    assert rows[0][0] == "abc123" and decode_rings(rows[0][1], 1000)[0] == [tuple(p) for p in sq[0]]
+    assert decode_rings(encode_rings(sq, 100), 100)[0] == [tuple(p) for p in sq[0]]

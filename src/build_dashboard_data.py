@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 
 from generate_data import simulate
+from geo import dashboard_geo
 from model import SIGNAL_FEATS, BlindSpotModel, cause_label, cause_rule, drivers, make_frame
 
 ORIGINS = list(range(31, 39))
@@ -25,7 +26,7 @@ def main(seed=42):
     fr = make_frame(df)
     tr, ca = fr[fr.week <= 22], fr[(fr.week >= 23) & (fr.week <= 28)]
     m = BlindSpotModel(SIGNAL_FEATS, seed, "linear").fit(tr, ca)
-    out = {"seed": seed, "origins": ORIGINS, "by_origin": {}, "history": {}}
+    out = {"seed": seed, "origins": ORIGINS, "by_origin": {}, "history": {}, "geo": dashboard_geo()}
     for z, g in df.groupby("zone"):
         g = g.sort_values("week")
         out["history"][z] = dict(reported=g.reported_cases.tolist(), completeness=g.completeness.round(2).tolist(),
@@ -41,7 +42,7 @@ def main(seed=42):
             cause = cause_label(r["diff"])
             drv = [dict(label=l, value=round(float(v), 2), typical=round(float(t), 2), key=k) for _, k, l, v, t in drivers(r, te)]
             rows.append(dict(
-                zone=r.zone, province=r.province, row=int(r.row), col=int(r.col),
+                zone=r.zone, uid=r.get("uid"), province=r.province, row=int(r.row), col=int(r.col),
                 score=round(float(r.score) * 100), lo80=round(float(r.lo80) * 100), hi80=round(float(r.hi80) * 100),
                 lo95=round(float(r.lo95) * 100), hi95=round(float(r.hi95) * 100),
                 burden=round(float(r.burden), 1), rep4=int(r.rep_sum4), 
